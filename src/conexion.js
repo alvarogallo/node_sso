@@ -14,4 +14,32 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
+// module.exports = pool;
+
+
+
+
+
+// Crear tabla login_attempts si no existe
+const initDatabase = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS login_attempts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(255),
+        ip_address VARCHAR(45),
+        domain VARCHAR(255),
+        user_agent TEXT,
+        status ENUM('success', 'failed'),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('✅ Tabla login_attempts verificada/creada');
+  } catch (error) {
+    console.error('❌ Error al crear tabla:', error);
+  }
+};
+
+initDatabase();
+
 module.exports = pool;
