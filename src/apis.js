@@ -116,6 +116,23 @@ router.post('/register', verificarToken, async (req, res) => {
       res.status(500).json({ error: 'Server error' });
     }
   });
+  
+  router.post('/verify-token', verificarToken, async (req, res) => {
+    try {
+      const { token } = req.body;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      const [user] = await pool.query('SELECT id, email, validated_at FROM users WHERE id = ?', [decoded.userId]);
+      
+      if (!user.length || !user[0].validated_at) {
+        return res.status(401).json({ valid: false });
+      }
+  
+      res.json({ valid: true, user: user[0] });
+    } catch (error) {
+      res.status(401).json({ valid: false });
+    }
+  });
 
   router.post('/validar', verificarToken, async (req, res) => {
     try {
