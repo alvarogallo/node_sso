@@ -62,30 +62,30 @@ const initDatabase = async () => {
     //     )
     //   `);
 
-    const checkNameColumn = `
-        SELECT COUNT(*) as count 
-        FROM INFORMATION_SCHEMA.COLUMNS 
-        WHERE TABLE_NAME = 'users' 
-        AND COLUMN_NAME = 'name'
-        AND TABLE_SCHEMA = ?
-        `;
+    // const checkNameColumn = `
+    //     SELECT COUNT(*) as count 
+    //     FROM INFORMATION_SCHEMA.COLUMNS 
+    //     WHERE TABLE_NAME = 'users' 
+    //     AND COLUMN_NAME = 'name'
+    //     AND TABLE_SCHEMA = ?
+    //     `;
 
-        const [nameColumns] = await pool.query(checkNameColumn, [process.env.MYSQLDATABASE]);
+    //     const [nameColumns] = await pool.query(checkNameColumn, [process.env.MYSQLDATABASE]);
 
-        if (nameColumns[0].count === 0) {
-        await pool.query(`
-            ALTER TABLE users 
-            ADD COLUMN name VARCHAR(64) DEFAULT NULL 
-            AFTER email
-        `);
-    }
+    //     if (nameColumns[0].count === 0) {
+    //     await pool.query(`
+    //         ALTER TABLE users 
+    //         ADD COLUMN name VARCHAR(64) DEFAULT NULL 
+    //         AFTER email
+    //     `);
+    // }
             
-      console.log('✅ Database structure updated');
-    } catch (error) {
-      console.error('❌ Database error:', error);
-    }
+    //   console.log('✅ Database structure updated');
+    // } catch (error) {
+    //   console.error('❌ Database error:', error);
+    // }
   };
 
-initDatabase();
+//initDatabase();
 
 module.exports = pool;
