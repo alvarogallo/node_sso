@@ -4,6 +4,7 @@ const mysql = require('mysql2/promise');
 // Log environment variables safely
 console.log('Environment Variables:');
 console.log('DB_HOST:', process.env.DB_HOST || 'Not set');
+console.log('DB_PORT:', process.env.DB_PORT || 'Not set');
 console.log('DB_USER:', process.env.DB_USER || 'Not set');
 console.log('DB_NAME:', process.env.DB_NAME || 'Not set');
 console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '[Password is set]' : 'Not set');
