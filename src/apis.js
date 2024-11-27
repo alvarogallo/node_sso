@@ -75,4 +75,36 @@ router.post('/login', verificarToken, async (req, res) => {
   }
 });
 
+router.post('/register', verificarToken, async (req, res) => {
+    try {
+      const { email, password, name, phone } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password required' });
+      }
+  
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      const [result] = await pool.query(
+        'INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
+        [email, hashedPassword, name]
+      );
+  
+      if (phone) {
+        await pool.query(
+          'INSERT INTO users_info (user_id, metodo, valor) VALUES (?, ?, ?)',
+          [result.insertId, 'phone', phone]
+        );
+      }
+  
+      res.status(201).json({ success: true, userId: result.insertId });
+  
+    } catch (error) {
+      if (error.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({ error: 'Email already exists' });
+      }
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+
 module.exports = router;
