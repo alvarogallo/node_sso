@@ -1,6 +1,7 @@
 const express = require('express');
 const apiRoutes = require('./apis');
-const { getConnection } = require('./conexion');
+//const { getConnection } = require('./conexion');
+pool = require('./conexion');
 
 const app = express();
 const port = 3000;
