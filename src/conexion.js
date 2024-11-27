@@ -21,8 +21,8 @@ const pool = mysql.createPool({
 
 
 // Crear tabla login_attempts si no existe
-const initDatabase = async () => {
-    try {
+//const initDatabase = async () => {
+    //try {
     //   await pool.query(`
     //     CREATE TABLE IF NOT EXISTS login_attempts (
     //       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -84,7 +84,7 @@ const initDatabase = async () => {
     // } catch (error) {
     //   console.error('❌ Database error:', error);
     // }
-  };
+  //};
 
 //initDatabase();
 
