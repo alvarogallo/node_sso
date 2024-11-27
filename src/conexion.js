@@ -40,6 +40,6 @@ const initDatabase = async () => {
   }
 };
 
-initDatabase();
+//initDatabase();
 
 module.exports = pool;

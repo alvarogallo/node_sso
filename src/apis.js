@@ -6,18 +6,35 @@ const bcrypt = require('bcryptjs');
 
 router.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
+    
+    const clientIP = req.ip;
+    const clientDomain = req.get('host');
+    const userAgent = req.get('user-agent');
 
-    const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [username]);
+    const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
     
     if (!users.length) {
+      await pool.query(
+        'INSERT INTO login_attempts (username, ip_address, domain, user_agent, status) VALUES (?, ?, ?, ?, ?)',
+        [email, clientIP, clientDomain, userAgent, 'failed']
+      );
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const validPassword = await bcrypt.compare(password, users[0].password);
     if (!validPassword) {
+      await pool.query(
+        'INSERT INTO login_attempts (username, ip_address, domain, user_agent, status) VALUES (?, ?, ?, ?, ?)',
+        [email, clientIP, clientDomain, userAgent, 'failed']
+      );
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+
+    await pool.query(
+      'INSERT INTO login_attempts (username, ip_address, domain, user_agent, status) VALUES (?, ?, ?, ?, ?)',
+      [email, clientIP, clientDomain, userAgent, 'success']
+    );
 
     const token = jwt.sign(
       { userId: users[0].id },
@@ -29,7 +46,7 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         id: users[0].id,
-        username: users[0].username
+        email: users[0].email
       }
     });
 
