@@ -135,14 +135,5 @@ router.post('/register', verificarToken, async (req, res) => {
       res.status(500).json({ error: 'Server error' });
     }
   });
-  app.get('/test', async (req, res) => {
-    try {
-      const connection = await pool.getConnection();
-      connection.release();
-      res.json({ message: 'Conexión exitosa' });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  });
   
 module.exports = router;

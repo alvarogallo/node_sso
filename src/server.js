@@ -16,6 +16,15 @@ app.get('/', async (req, res) => {
   }
 });
 
+app.get('/test', async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    connection.release();
+    res.json({ message: 'Conexión exitosa' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.get('/', async (req, res) => {
   try {
