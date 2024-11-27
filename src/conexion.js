@@ -23,34 +23,44 @@ const pool = mysql.createPool({
 // Crear tabla login_attempts si no existe
 const initDatabase = async () => {
     try {
+    //   await pool.query(`
+    //     CREATE TABLE IF NOT EXISTS login_attempts (
+    //       id INT AUTO_INCREMENT PRIMARY KEY,
+    //       username VARCHAR(255),
+    //       ip_address VARCHAR(45),
+    //       domain VARCHAR(255),
+    //       user_agent TEXT,
+    //       status ENUM('success', 'failed'),
+    //       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    //     )
+    //   `);
+  
+    //   const checkColumn = `
+    //     SELECT COUNT(*) as count 
+    //     FROM INFORMATION_SCHEMA.COLUMNS 
+    //     WHERE TABLE_NAME = 'users' 
+    //     AND COLUMN_NAME = 'validated_at'
+    //     AND TABLE_SCHEMA = ?
+    //   `;
+      
+    //   const [columns] = await pool.query(checkColumn, [process.env.MYSQLDATABASE]);
+      
+    //   if (columns[0].count === 0) {
+    //     await pool.query(`
+    //       ALTER TABLE users 
+    //       ADD COLUMN validated_at DATETIME DEFAULT NULL
+    //     `);
+    //   }
+
       await pool.query(`
-        CREATE TABLE IF NOT EXISTS login_attempts (
+        CREATE TABLE IF NOT EXISTS users_info (
           id INT AUTO_INCREMENT PRIMARY KEY,
-          username VARCHAR(255),
-          ip_address VARCHAR(45),
-          domain VARCHAR(255),
-          user_agent TEXT,
-          status ENUM('success', 'failed'),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          user_id INT NOT NULL,
+          metodo VARCHAR(16) DEFAULT NULL,
+          valor VARCHAR(32) DEFAULT NULL,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
       `);
-  
-      const checkColumn = `
-        SELECT COUNT(*) as count 
-        FROM INFORMATION_SCHEMA.COLUMNS 
-        WHERE TABLE_NAME = 'users' 
-        AND COLUMN_NAME = 'validated_at'
-        AND TABLE_SCHEMA = ?
-      `;
-      
-      const [columns] = await pool.query(checkColumn, [process.env.MYSQLDATABASE]);
-      
-      if (columns[0].count === 0) {
-        await pool.query(`
-          ALTER TABLE users 
-          ADD COLUMN validated_at DATETIME DEFAULT NULL
-        `);
-      }
       
       console.log('✅ Database structure updated');
     } catch (error) {
