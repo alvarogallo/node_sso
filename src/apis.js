@@ -4,6 +4,15 @@ const pool = require('./conexion');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
+router.get('/', async (req, res) => {
+    try {
+      const [result] = await pool.query('SELECT COUNT(*) as total FROM users');
+      res.json({ total_users: result[0].total });
+    } catch (error) {
+      res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Middleware para verificar TOKEN_ACCESO
 const verificarToken = (req, res, next) => {
     const tokenAcceso = req.headers['token-acceso'];
@@ -12,6 +21,7 @@ const verificarToken = (req, res, next) => {
     }
     next();
   };
+
 
 
 //router.post('/login', async (req, res) => {
