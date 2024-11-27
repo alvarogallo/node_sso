@@ -7,13 +7,22 @@ const port = 3000;
 
 app.use(express.json());
 
-app.get('/test', async (req, res) => {
+app.get('/', async (req, res) => {
   try {
-    const connection = await pool.getConnection();
-    connection.release();
-    res.json({ message: 'Conexión exitosa' });
+    const [result] = await pool.query('SELECT COUNT(*) as total FROM users');
+    res.json({ total_users: result[0].total });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+app.get('/', async (req, res) => {
+  try {
+    const [result] = await pool.query('SELECT COUNT(*) as total FROM users');
+    res.json({ total_users: result[0].total });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
