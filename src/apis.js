@@ -42,6 +42,14 @@ router.post('/login', verificarToken, async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    if (!users[0].validated) {
+        await pool.query(
+            'INSERT INTO login_attempts (username, ip_address, domain, user_agent, status) VALUES (?, ?, ?, ?, ?)',
+            [email, clientIP, clientDomain, userAgent, 'failed']
+        );        
+        return res.status(403).json({ error: 'Account not validated' });
+      }
+
     await pool.query(
       'INSERT INTO login_attempts (username, ip_address, domain, user_agent, status) VALUES (?, ?, ?, ?, ?)',
       [email, clientIP, clientDomain, userAgent, 'success']

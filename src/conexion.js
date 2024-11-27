@@ -34,12 +34,17 @@ const initDatabase = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('✅ Tabla login_attempts verificada/creada');
+    await pool.query(`
+        ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS validated_at DATETIME DEFAULT NULL
+      `);
+    //console.log('✅ Tabla login_attempts verificada/creada');
+    console.log('✅ Database structure updated');
   } catch (error) {
     console.error('❌ Error al crear tabla:', error);
   }
 };
 
-//initDatabase();
+initDatabase();
 
 module.exports = pool;
