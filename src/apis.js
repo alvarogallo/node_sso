@@ -4,7 +4,18 @@ const pool = require('./conexion');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-router.post('/login', async (req, res) => {
+// Middleware para verificar TOKEN_ACCESO
+const verificarToken = (req, res, next) => {
+    const tokenAcceso = req.headers['token-acceso'];
+    if (tokenAcceso !== process.env.TOKEN_ACCESO) {
+      return res.status(403).json({ error: 'Sitio no autorizado para servicio de LOGIN' });
+    }
+    next();
+  };
+
+
+//router.post('/login', async (req, res) => {
+router.post('/login', verificarToken, async (req, res) => {
   try {
     const { email, password } = req.body;
     
