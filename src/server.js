@@ -23,6 +23,7 @@ async function testConnection() {
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
   }
+  
 }
 
 testConnection();
