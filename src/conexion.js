@@ -22,49 +22,41 @@ const pool = mysql.createPool({
 
 // Crear tabla login_attempts si no existe
 const initDatabase = async () => {
-  try {
-    // await pool.query(`
-    //   CREATE TABLE IF NOT EXISTS login_attempts (
-    //     id INT AUTO_INCREMENT PRIMARY KEY,
-    //     username VARCHAR(255),
-    //     ip_address VARCHAR(45),
-    //     domain VARCHAR(255),
-    //     user_agent TEXT,
-    //     status ENUM('success', 'failed'),
-    //     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    //   )
-    // `);
-    // // await pool.query(`
-    // //     ALTER TABLE users 
-    // //     ADD COLUMN IF NOT EXISTS validated_at DATETIME DEFAULT NULL
-    // //   `);
-    // // //console.log('✅ Tabla login_attempts verificada/creada');
-    // // console.log('✅ Database structure updated');
-    // try {
-    //     const [columns] = await pool.query(checkColumn, [process.env.MYSQLDATABASE]);
-        
-    //     if (columns[0].count === 0) {
-    //       await pool.query(`
-    //         ALTER TABLE users 
-    //         ADD COLUMN validated_at DATETIME DEFAULT NULL
-    //       `);
-    //     }
-        
-    //     console.log('✅ Database structure updated');    
-    const [columns] = await pool.query(checkColumn, [process.env.MYSQLDATABASE]);
-    
-    if (columns[0].count === 0) {
+    try {
       await pool.query(`
-        ALTER TABLE users 
-        ADD COLUMN validated_at DATETIME DEFAULT NULL
+        CREATE TABLE IF NOT EXISTS login_attempts (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          username VARCHAR(255),
+          ip_address VARCHAR(45),
+          domain VARCHAR(255),
+          user_agent TEXT,
+          status ENUM('success', 'failed'),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
       `);
+  
+      const checkColumn = `
+        SELECT COUNT(*) as count 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_NAME = 'users' 
+        AND COLUMN_NAME = 'validated_at'
+        AND TABLE_SCHEMA = ?
+      `;
+      
+      const [columns] = await pool.query(checkColumn, [process.env.MYSQLDATABASE]);
+      
+      if (columns[0].count === 0) {
+        await pool.query(`
+          ALTER TABLE users 
+          ADD COLUMN validated_at DATETIME DEFAULT NULL
+        `);
+      }
+      
+      console.log('✅ Database structure updated');
+    } catch (error) {
+      console.error('❌ Database error:', error);
     }
-    
-    console.log('✅ Database structure updated');    
-  } catch (error) {
-    console.error('❌ Error al crear tabla:', error);
-  }
-};
+  };
 
 initDatabase();
 
