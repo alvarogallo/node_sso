@@ -1,8 +1,8 @@
-// const express = require('express');
-// const router = express.Router();
-// const pool = require('./conexion');
-// const jwt = require('jsonwebtoken');
-// const bcrypt = require('bcryptjs');
+const express = require('express');
+const router = express.Router();
+const pool = require('./conexion');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 // router.post('/login', async (req, res) => {
 //   try {
@@ -56,7 +56,8 @@
 //   }
 // });
 
-// module.exports = router;
+
+
 router.post('/login', async (req, res) => {
     try {
       const { email } = req.body;
@@ -78,3 +79,6 @@ router.post('/login', async (req, res) => {
       res.status(500).json({ error: 'Server error' });
     }
   });
+
+
+module.exports = router;
