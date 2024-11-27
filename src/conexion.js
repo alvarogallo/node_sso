@@ -52,16 +52,34 @@ const initDatabase = async () => {
     //     `);
     //   }
 
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS users_info (
-          id INT AUTO_INCREMENT PRIMARY KEY,
-          user_id INT NOT NULL,
-          metodo VARCHAR(16) DEFAULT NULL,
-          valor VARCHAR(32) DEFAULT NULL,
-          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-      `);
-      
+    //   await pool.query(`
+    //     CREATE TABLE IF NOT EXISTS users_info (
+    //       id INT AUTO_INCREMENT PRIMARY KEY,
+    //       user_id INT NOT NULL,
+    //       metodo VARCHAR(16) DEFAULT NULL,
+    //       valor VARCHAR(32) DEFAULT NULL,
+    //       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    //     )
+    //   `);
+
+    const checkNameColumn = `
+        SELECT COUNT(*) as count 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_NAME = 'users' 
+        AND COLUMN_NAME = 'name'
+        AND TABLE_SCHEMA = ?
+        `;
+
+        const [nameColumns] = await pool.query(checkNameColumn, [process.env.MYSQLDATABASE]);
+
+        if (nameColumns[0].count === 0) {
+        await pool.query(`
+            ALTER TABLE users 
+            ADD COLUMN name VARCHAR(64) DEFAULT NULL 
+            AFTER email
+        `);
+    }
+            
       console.log('✅ Database structure updated');
     } catch (error) {
       console.error('❌ Database error:', error);
