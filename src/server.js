@@ -11,35 +11,69 @@ const pool = require('./conexion');
 const app = express();
 const port = 3000;
 
-// Rate limiting para login - Prevenir ataques de fuerza bruta
+// Rate limiting con MUCHO debugging
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // Máximo 5 intentos por IP en 15 minutos
-  message: {
-    error: 'Demasiados intentos de login desde esta IP. Inténtalo de nuevo en 15 minutos.'
-  },
-  standardHeaders: true, // Incluir info en headers `RateLimit-*`
-  legacyHeaders: false, // Desabilitar headers `X-RateLimit-*`
-  skipSuccessfulRequests: true, // No contar requests exitosos
-});
-
-// Rate limiting general para API
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // Máximo 100 requests por IP en 15 minutos
-  message: {
-    error: 'Demasiadas peticiones desde esta IP. Inténtalo más tarde.'
-  },
+  windowMs: 2 * 60 * 1000, // 2 minutos para pruebas
+  max: 3, // Solo 3 intentos
   standardHeaders: true,
   legacyHeaders: false,
+  
+  // REMOVER skipSuccessfulRequests para que cuente TODO
+  // skipSuccessfulRequests: true,
+  
+  // Handler personalizado con logs
+  handler: (req, res, next) => {
+    console.log('🚫🚫🚫 RATE LIMIT HIT! 🚫🚫🚫');
+    console.log('IP:', req.ip);
+    console.log('URL:', req.url);
+    console.log('Method:', req.method);
+    
+    res.status(429).json({
+      error: '🚫 BLOQUEADO POR RATE LIMITING - Demasiados intentos',
+      code: 'RATE_LIMITED',
+      ip: req.ip,
+      attempts: req.rateLimit.current,
+      maxAttempts: req.rateLimit.limit
+    });
+  },
+  
+  // Log cada request que pasa por el rate limiter
+  onLimitReached: (req, res, options) => {
+    console.log('⚠️ Rate limit reached for IP:', req.ip);
+  },
+  
+  // Mensaje para cuando NO está bloqueado aún
+  message: {
+    error: 'Demasiados intentos de login. Inténtalo más tarde.'
+  }
 });
+
+// Middleware de debugging
+const debugMiddleware = (req, res, next) => {
+  if (req.path === '/admin/auth') {
+    console.log('🔍 DEBUG AUTH REQUEST:');
+    console.log('- IP:', req.ip);
+    console.log('- Method:', req.method);
+    console.log('- Path:', req.path);
+    console.log('- Rate limit info:', req.rateLimit);
+  }
+  next();
+};
 
 app.use(express.json());
 app.use(cookieParser());
 
-// Aplicar rate limiting
-app.use('/api/', apiLimiter); // Proteger toda la API
-app.use('/admin/auth', loginLimiter); // Proteger login de admin específicamente
+// IMPORTANTE: Aplicar rate limiting ANTES de las rutas
+console.log('🔧 Setting up rate limiting for /admin/auth');
+
+// Aplicar debug a todas las requests de auth
+app.use('/admin/auth', debugMiddleware);
+
+// Aplicar rate limiting ESPECÍFICAMENTE a /admin/auth
+app.use('/admin/auth', (req, res, next) => {
+  console.log('🛡️ Rate limiter middleware executing for:', req.path);
+  next();
+}, loginLimiter);
 
 app.get('/', (req, res) => {
   res.redirect('/admin');
@@ -66,4 +100,5 @@ app.use('/usuarios', usuariosRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
+  console.log('🛡️ Rate limiting configured for /admin/auth');
 });
