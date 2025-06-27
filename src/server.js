@@ -2,9 +2,9 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const apiRoutes = require('./apis');
 const adminRoutes = require('./admin');
-//const registerRoutes = require('./register');
-//const invitadosRoutes = require('./invitados');
-//const usuariosRoutes = require('./usuarios');
+const registerRoutes = require('./register');
+const invitadosRoutes = require('./invitados');
+const usuariosRoutes = require('./usuarios');
 const pool = require('./conexion');
 
 const app = express();
