@@ -13,13 +13,8 @@ const port = 3000;
 app.use(express.json());
 app.use(cookieParser());
 
-app.get('/', async (req, res) => {
-  try {
-    const [result] = await pool.query('SELECT COUNT(*) as total FROM users');
-    res.json({ total_users: result[0].total });
-  } catch (error) {
-    res.status(500).json({ error: 'Server error' });
-  }
+app.get('/', (req, res) => {
+  res.redirect('/admin');
 });
 
 app.get('/test', async (req, res) => {
