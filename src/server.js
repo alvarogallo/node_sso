@@ -37,9 +37,9 @@ app.use('/api', apiRoutes);
 
 // Rutas web
 app.use('/admin', adminRoutes);
-//app.use('/register', registerRoutes);
-//app.use('/invitados', invitadosRoutes);
-//app.use('/usuarios', usuariosRoutes);
+app.use('/register', registerRoutes);
+app.use('/invitados', invitadosRoutes);
+app.use('/usuarios', usuariosRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
