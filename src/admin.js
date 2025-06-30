@@ -53,7 +53,30 @@ router.get('/', (req, res) => {
 });
 
 // Página de login
-router.get('/login', (req, res) => {
+// Página de login
+router.get('/login', async (req, res) => {
+  // Verificar conexión a la base de datos
+  let dbStatus = { connected: false, message: 'Error de conexión', color: '#dc3545' };
+  
+  try {
+    const connection = await pool.getConnection();
+    await connection.ping(); // Verificar que la conexión esté activa
+    connection.release();
+    
+    dbStatus = { 
+      connected: true, 
+      message: 'Conexión DB OK ✅', 
+      color: '#28a745' 
+    };
+  } catch (error) {
+    console.error('❌ Database connection error:', error.message);
+    dbStatus = { 
+      connected: false, 
+      message: `Error DB: ${error.message}`, 
+      color: '#dc3545' 
+    };
+  }
+
   res.send(`
     <!DOCTYPE html>
     <html lang="es">
@@ -84,6 +107,16 @@ router.get('/login', (req, res) => {
                 text-align: center;
                 color: #333;
                 margin-bottom: 2rem;
+            }
+            .db-status {
+                background: #f8f9fa;
+                padding: 0.75rem;
+                border-radius: 5px;
+                margin-bottom: 1.5rem;
+                text-align: center;
+                font-weight: bold;
+                border-left: 4px solid ${dbStatus.color};
+                color: ${dbStatus.color};
             }
             .form-group {
                 margin-bottom: 1rem;
@@ -116,26 +149,51 @@ router.get('/login', (req, res) => {
             button:hover {
                 background: #5a67d8;
             }
+            button:disabled {
+                background: #6c757d;
+                cursor: not-allowed;
+            }
             .error {
                 color: #e53e3e;
                 margin-top: 0.5rem;
                 text-align: center;
+            }
+            .db-details {
+                background: #e3f2fd;
+                padding: 0.5rem;
+                border-radius: 3px;
+                margin-top: 0.5rem;
+                font-size: 0.8rem;
+                color: #1976d2;
             }
         </style>
     </head>
     <body>
         <div class="login-container">
             <h1>Administración</h1>
+            
+            <!-- Estado de la base de datos -->
+            <div class="db-status">
+                🔗 ${dbStatus.message}
+                <div class="db-details">
+                    Host: ${process.env.MYSQLHOST || 'No configurado'}<br>
+                    Base: ${process.env.DB_NAME || 'No configurada'}<br>
+                    Usuario: ${process.env.DB_USER || 'No configurado'}
+                </div>
+            </div>
+            
             <form id="loginForm">
                 <div class="form-group">
                     <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" required>
+                    <input type="email" id="email" name="email" required ${!dbStatus.connected ? 'disabled' : ''}>
                 </div>
                 <div class="form-group">
                     <label for="password">Contraseña:</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" name="password" required ${!dbStatus.connected ? 'disabled' : ''}>
                 </div>
-                <button type="submit">Iniciar Sesión</button>
+                <button type="submit" ${!dbStatus.connected ? 'disabled' : ''}>
+                    ${dbStatus.connected ? 'Iniciar Sesión' : 'Base de Datos Desconectada'}
+                </button>
                 <div id="error" class="error"></div>
             </form>
             
@@ -145,6 +203,22 @@ router.get('/login', (req, res) => {
         </div>
 
         <script>
+            // Verificar conexión de DB cada 10 segundos
+            setInterval(async () => {
+                try {
+                    const response = await fetch('/test');
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        console.log('✅ DB Connection check passed:', data.message);
+                    } else {
+                        console.error('❌ DB Connection check failed');
+                    }
+                } catch (error) {
+                    console.error('❌ DB Connection check error:', error);
+                }
+            }, 10000);
+
             document.getElementById('loginForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 

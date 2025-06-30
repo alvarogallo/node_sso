@@ -12,6 +12,7 @@ const app = express();
 const port = 3000;
 
 // Rate limiting con MUCHO debugging
+// Rate limiting con MUCHO debugging
 const loginLimiter = rateLimit({
   windowMs: 2 * 60 * 1000, // 2 minutos para pruebas
   max: 3, // Solo 3 intentos
@@ -24,6 +25,7 @@ const loginLimiter = rateLimit({
   // Handler personalizado con logs
   handler: (req, res, next) => {
     console.log('🚫🚫🚫 RATE LIMIT HIT! 🚫🚫🚫');
+    console.log('⚠️ Rate limit reached for IP:', req.ip); // Movido aquí desde onLimitReached
     console.log('IP:', req.ip);
     console.log('URL:', req.url);
     console.log('Method:', req.method);
@@ -37,12 +39,7 @@ const loginLimiter = rateLimit({
     });
   },
   
-  // Log cada request que pasa por el rate limiter
-  onLimitReached: (req, res, options) => {
-    console.log('⚠️ Rate limit reached for IP:', req.ip);
-  },
-  
-  // Mensaje para cuando NO está bloqueado aún
+  // Mensaje para cuando NO está bloqueado aún (esto se usa como fallback)
   message: {
     error: 'Demasiados intentos de login. Inténtalo más tarde.'
   }
@@ -81,11 +78,55 @@ app.get('/', (req, res) => {
 
 app.get('/test', async (req, res) => {
   try {
+    console.log('🔍 Testing database connection...');
+    
     const connection = await pool.getConnection();
+    console.log('✅ Database connection acquired');
+    
+    // Ejecutar una query simple para verificar que todo funciona
+    const [result] = await connection.query('SELECT 1 as test, NOW() as current_time');
+    console.log('✅ Test query executed successfully:', result[0]);
+    
+    // Verificar que las tablas principales existen
+    const [tables] = await connection.query("SHOW TABLES");
+    const tableNames = tables.map(table => Object.values(table)[0]);
+    console.log('📋 Available tables:', tableNames);
+    
     connection.release();
-    res.json({ message: 'Conexión exitosa' });
+    console.log('✅ Database connection released');
+    
+    res.json({ 
+      success: true,
+      message: 'Conexión exitosa ✅',
+      timestamp: new Date().toISOString(),
+      database: {
+        host: process.env.MYSQLHOST?.split(':')[0] || 'unknown',
+        port: 36100,
+        database: process.env.DB_NAME || 'unknown',
+        user: process.env.DB_USER || 'unknown'
+      },
+      tables: tableNames,
+      testQuery: result[0]
+    });
+    
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('❌ Database connection error:', error);
+    
+    res.status(500).json({ 
+      success: false,
+      error: error.message,
+      code: error.code,
+      errno: error.errno,
+      sqlState: error.sqlState,
+      timestamp: new Date().toISOString(),
+      config: {
+        host: process.env.MYSQLHOST?.split(':')[0] || 'No configurado',
+        port: 36100,
+        database: process.env.DB_NAME || 'No configurado',
+        user: process.env.DB_USER || 'No configurado',
+        passwordSet: !!process.env.DB_PASSWORD
+      }
+    });
   }
 });
 
