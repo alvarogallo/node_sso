@@ -76,6 +76,9 @@ app.get('/', (req, res) => {
   res.redirect('/admin');
 });
 
+
+//aaa
+
 app.get('/test', async (req, res) => {
   try {
     console.log('🔍 Testing database connection...');

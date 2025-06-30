@@ -141,7 +141,7 @@ router.get('/', verificarAdmin, async (req, res) => {
     const tablaHTML = generarTablaInvitaciones(invitations);
     const deleteButtonHTML = invitations.length > 0 ? 
       '<button id="deleteSelectedBtn" onclick="eliminarSeleccionados()" class="btn-danger btn-sm" style="display: none;">🗑️ Eliminar Seleccionados</button>' : '';
-
+      
     res.send(`
       <!DOCTYPE html>
       <html lang="es">
